@@ -2,12 +2,15 @@ package com.adobe.phonegap.push;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmPubSub;
@@ -27,6 +30,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import com.adobe.phonegap.push.MaintenanceService.LocalBinder;
+
 public class PushPlugin extends CordovaPlugin implements PushConstants {
 
     public static final String LOG_TAG = "PushPlugin";
@@ -36,6 +41,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
     private static Bundle gCachedExtras = null;
     private static boolean gForeground = false;
 
+    private MaintenanceService maintenanceService;
     private Intent maintenanceServiceIntent;
     private BroadcastReceiver receiver;
 
@@ -46,6 +52,19 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
     private Context getApplicationContext() {
         return this.cordova.getActivity().getApplicationContext();
     }
+
+    private ServiceConnection maintenanceServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LocalBinder binder = (LocalBinder) service;
+            PushPlugin.this.maintenanceService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            PushPlugin.this.maintenanceService = null;
+        }
+    };
 
     @Override
     public boolean execute(final String action, final JSONArray data, final CallbackContext callbackContext) {
@@ -58,13 +77,15 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                 IntentFilter restartServiceFilter = new IntentFilter("com.adobe.phonegap.push.INIT_RESTART_SERVICE");
                 getApplicationContext().registerReceiver(receiver, restartServiceFilter);
 
+                Log.v(LOG_TAG, "registerReceiver: RestartService");
+            }
+            if(maintenanceService==null){
                 maintenanceServiceIntent = new Intent(getApplicationContext(), MaintenanceService.class);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
                     maintenanceServiceIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
                 }
                 getApplicationContext().startService(maintenanceServiceIntent);
-
-                Log.v(LOG_TAG, "registerReceiver: RestartService");
+                getApplicationContext().bindService(maintenanceServiceIntent, maintenanceServiceConnection, Context.BIND_ADJUST_WITH_ACTIVITY);
             }
 
             cordova.getThreadPool().execute(new Runnable() {
