@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class MaintenanceService extends Service {
     private static final String LOG_TAG = "MaintenanceService";
     private static int REBOOT_DELAY_TIMER = 10 * 1000;
+    private static int CHECK_DELAY_TIMER = 30 * 60 * 1000;
 
     public class LocalBinder extends Binder {
         public MaintenanceService getService() {
@@ -73,13 +75,13 @@ public class MaintenanceService extends Service {
     public void onStart(Intent intent, int startId){
         Log.d(LOG_TAG, "onStart");
         super.onStart(intent, startId);
-        startForeground(startId, new Notification());
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "onStartCommand");
-
+        startForeground(0, new Notification());
+        //checkThread.start();
         return START_STICKY;
     }
 
@@ -88,7 +90,10 @@ public class MaintenanceService extends Service {
      */
     private void registerRestartAlarm(){
         Intent intent = new Intent(MaintenanceService.this, RestartService.class);
-        intent.setAction(RestartService.ACTION_RESTART_CHATDSERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+            intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        }
+        intent.setAction(RestartService.ACTION_RESTART_MAINTENANCESERVICE);
         PendingIntent sender = PendingIntent.getBroadcast(MaintenanceService.this, 0, intent, 0);
 
         long firstTime = SystemClock.elapsedRealtime();
@@ -103,11 +108,26 @@ public class MaintenanceService extends Service {
      */
     private void unregisterRestartAlarm(){
         Intent intent = new Intent(MaintenanceService.this, RestartService.class);
-        intent.setAction(RestartService.ACTION_RESTART_CHATDSERVICE);
+        intent.setAction(RestartService.ACTION_RESTART_MAINTENANCESERVICE);
         PendingIntent sender = PendingIntent.getBroadcast(MaintenanceService.this, 0, intent, 0);
 
         AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
         am.cancel(sender);
     }
+
+    private int counter;
+
+    private Thread checkThread = new Thread(){
+        public void run(){
+            counter = 0;
+            while(true) {
+                Log.d(LOG_TAG, "checkThread - "+Integer.toString(counter));
+                counter++;
+                //unregisterRestartAlarm();
+                //registerRestartAlarm();
+                SystemClock.sleep(CHECK_DELAY_TIMER);
+            }
+        }
+    };
 
 }
