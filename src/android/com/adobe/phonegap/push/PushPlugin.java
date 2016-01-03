@@ -1,8 +1,12 @@
 package com.adobe.phonegap.push;
 
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -32,6 +36,9 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
     private static Bundle gCachedExtras = null;
     private static boolean gForeground = false;
 
+    private Intent maintenanceServiceIntent;
+    private BroadcastReceiver receiver;
+
     /**
      * Gets the application context from cordova's main activity.
      * @return the application context
@@ -46,6 +53,20 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
         gWebView = this.webView;
 
         if (INITIALIZE.equals(action)) {
+            if(receiver==null){
+                receiver = new RestartService();
+                IntentFilter restartServiceFilter = new IntentFilter("com.adobe.phonegap.push.INIT_RESTART_SERVICE");
+                getApplicationContext().registerReceiver(receiver, restartServiceFilter);
+
+                maintenanceServiceIntent = new Intent(getApplicationContext(), MaintenanceService.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+                    maintenanceServiceIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+                }
+                getApplicationContext().startService(maintenanceServiceIntent);
+
+                Log.v(LOG_TAG, "registerReceiver: RestartService");
+            }
+
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     pushContext = callbackContext;
@@ -245,6 +266,9 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
 
     @Override
     public void onDestroy() {
+        if(receiver!=null){
+            getApplicationContext().unregisterReceiver(receiver);
+        }
         super.onDestroy();
         gForeground = false;
         gWebView = null;
