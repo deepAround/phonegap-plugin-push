@@ -81,7 +81,11 @@ public class MaintenanceService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "onStartCommand");
         startForeground(0, new Notification());
-        //checkThread.start();
+        /*
+        if(!checkThread.isAlive()) {
+            checkThread.start();
+        }
+        //*/
         return START_STICKY;
     }
 
