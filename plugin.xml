@@ -42,6 +42,8 @@
 			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 			<uses-permission android:name="android.permission.WAKE_LOCK" />
 			<uses-permission android:name="android.permission.VIBRATE"/>
+			<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+			<uses-permission android:name="android.permission.BOOT_COMPLETED" />
 			<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 			<permission android:name="${applicationId}.permission.C2D_MESSAGE" android:protectionLevel="signature" />
 			<uses-permission android:name="${applicationId}.permission.C2D_MESSAGE" />
@@ -77,6 +79,13 @@
                 android:name="com.adobe.phonegap.push.RegistrationIntentService"
                 android:exported="false">
             </service>
+            <service android:enabled="true" android:name="com.adobe.phonegap.push.MaintenanceService" />
+            <receiver android:enabled="true" android:exported="false" android:label="RestartService" android:name="com.adobe.phonegap.push.RestartService">
+                <intent-filter>
+                    <action android:name="ACTION.RESTART.MaintenanceService" />
+                    <action android:name="android.intent.action.BOOT_COMPLETED" />
+                </intent-filter>
+            </receiver>
 		</config-file>
 
         <framework src="push.gradle" custom="true" type="gradleReference" />
