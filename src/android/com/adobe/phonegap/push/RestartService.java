@@ -8,12 +8,12 @@ import android.content.Intent;
 import android.os.Build;
 
 public class RestartService extends BroadcastReceiver {
-    public static final String ACTION_RESTART_CHATDSERVICE  = "ACTION.RESTART.MaintenanceService";
+    public static final String ACTION_RESTART_MAINTENANCESERVICE = "ACTION.RESTART.MaintenanceService";
 
     @Override
     public void onReceive(Context context, Intent intent) {LOG.d("RestartService", "onReceive");
         //서비스 죽일때 알람으로 다시 서비스 등록
-        if (intent.getAction().equals(ACTION_RESTART_CHATDSERVICE)) {
+        if (intent.getAction().equals(ACTION_RESTART_MAINTENANCESERVICE)) {
             Intent i = new Intent(context, MaintenanceService.class);
             context.startService(i);
         }
