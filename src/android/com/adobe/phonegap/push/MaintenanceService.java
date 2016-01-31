@@ -20,7 +20,7 @@ import java.util.Map;
 public class MaintenanceService extends Service {
     private static final String LOG_TAG = "MaintenanceService";
     private static int REBOOT_DELAY_TIMER = 10 * 1000;
-    private static int CHECK_DELAY_TIMER = 30 * 60 * 1000;
+    private static int CHECK_DELAY_TIMER = 1 * 60 * 1000;
 
     public class LocalBinder extends Binder {
         public MaintenanceService getService() {
@@ -81,11 +81,9 @@ public class MaintenanceService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "onStartCommand");
         startForeground(0, new Notification());
-        /*
         if(!checkThread.isAlive()) {
             checkThread.start();
         }
-        //*/
         return START_STICKY;
     }
 
