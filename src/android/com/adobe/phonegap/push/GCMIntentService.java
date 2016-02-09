@@ -36,9 +36,10 @@ import java.util.Random;
 
 @SuppressLint("NewApi")
 public class GCMIntentService extends GcmListenerService implements PushConstants {
-
-    private static final String LOG_TAG = "PushPlugin_GCMIntentService";
+    private static final String LOG_TAG = "GCMIntentService";
     private static HashMap<Integer, ArrayList<String>> messageMap = new HashMap<Integer, ArrayList<String>>();
+
+    public static int badgeCount = 0;
 
     public void setNotification(int notId, String message){
         ArrayList<String> messageList = messageMap.get(notId);
@@ -54,6 +55,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         }
     }
 
+    @SuppressLint("LongLogTag")
     @Override
     public void onMessageReceived(String from, Bundle extras) {
         Log.d(LOG_TAG, "onMessage - from: " + from);
@@ -323,6 +325,9 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
          * Notification add actions
          */
         createActions(extras, mBuilder, resources, packageName);
+
+        badgeCount++;
+        saveBadge(badgeCount);
 
         mNotificationManager.notify(appName, notId, mBuilder.build());
     }
@@ -605,5 +610,36 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         }
 
         return retval;
+    }
+
+    /**
+     * Persist the badge of the app icon so that `getBadge` is able to return
+     * the badge number back to the client.
+     *
+     * @param badge
+     *      The badge of the app icon
+     */
+    public void saveBadge (int badge) {
+        String packageName = getApplicationContext().getPackageName();
+        Intent launchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(packageName);
+        String className = launchIntent.getComponent().getClassName();
+
+        Intent intent = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
+        intent.putExtra("badge_count", badge);
+
+        Log.d(LOG_TAG, "saveBadge: " + badge + ", "+packageName+", "+className);
+        // 메인 메뉴에 나타나는 어플의  패키지 명
+        intent.putExtra("badge_count_package_name", packageName);
+        // 메인메뉴에 나타나는 어플의 클래스 명
+        intent.putExtra("badge_count_class_name", className);
+        sendBroadcast(intent);
+    }
+
+    /**
+     * Clears the badge of the app icon.
+     */
+    public void clearBadge() {
+        badgeCount = 0;
+        saveBadge(0);
     }
 }
