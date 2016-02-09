@@ -135,6 +135,24 @@ PushNotification.prototype.getApplicationIconBadgeNumber = function(successCallb
     exec(successCallback, errorCallback, 'PushNotification', 'getApplicationIconBadgeNumber', []);
 };
 
+// Call this to notify application resume.
+PushNotification.prototype.resume = function(successCallback, errorCallback) {
+    if (successCallback == null) { successCallback = function() {}}
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.resume failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.resume failure: success callback parameter must be a function");
+        return
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "resume", [{}]);
+};
+
 /**
  * Listen for an event.
  *
