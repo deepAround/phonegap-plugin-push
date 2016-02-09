@@ -221,6 +221,8 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                     }
                 }
             });
+        } else if (RESUME.equals(action)) {
+            clearBadge();
         } else {
             Log.e(LOG_TAG, "Invalid action : " + action);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
@@ -395,5 +397,36 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
 
     public static boolean isActive() {
         return gWebView != null;
+    }
+
+    /**
+     * Persist the badge of the app icon so that `getBadge` is able to return
+     * the badge number back to the client.
+     *
+     * @param badge
+     *      The badge of the app icon
+     */
+    public void saveBadge (int badge) {
+        String packageName = getApplicationContext().getPackageName();
+        Intent launchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(packageName);
+        String className = launchIntent.getComponent().getClassName();
+
+        Intent intent = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
+        intent.putExtra("badge_count", badge);
+
+        Log.d(LOG_TAG, "saveBadge: " + badge + ", "+packageName+", "+className);
+        // 메인 메뉴에 나타나는 어플의  패키지 명
+        intent.putExtra("badge_count_package_name", packageName);
+        // 메인메뉴에 나타나는 어플의 클래스 명
+        intent.putExtra("badge_count_class_name", className);
+        getApplicationContext().sendBroadcast(intent);
+    }
+
+    /**
+     * Clears the badge of the app icon.
+     */
+    public void clearBadge() {
+        GCMIntentService.badgeCount = 0;
+        saveBadge(0);
     }
 }
