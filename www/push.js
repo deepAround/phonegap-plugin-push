@@ -150,7 +150,7 @@ PushNotification.prototype.resume = function(successCallback, errorCallback) {
         return
     }
 
-    cordova.exec(successCallback, errorCallback, "PushPlugin", "resume", [{}]);
+    exec(successCallback, errorCallback, 'PushNotification', 'resume', []);
 };
 
 /**
