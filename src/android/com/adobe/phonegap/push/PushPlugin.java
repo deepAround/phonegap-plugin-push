@@ -172,6 +172,8 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                     }
                 }
             });
+            
+            clearBadge();
         } else if (UNREGISTER.equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
@@ -222,6 +224,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                 }
             });
         } else if (RESUME.equals(action)) {
+            Log.d(LOG_TAG, "RESUME clearBadge : " + action);
             clearBadge();
         } else {
             Log.e(LOG_TAG, "Invalid action : " + action);
@@ -414,7 +417,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
         Intent intent = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
         intent.putExtra("badge_count", badge);
 
-        Log.d(LOG_TAG, "saveBadge: " + badge + ", "+packageName+", "+className);
+        Log.d(LOG_TAG, "saveBadge: " + badge + ", " + packageName + ", " + className);
         // 메인 메뉴에 나타나는 어플의  패키지 명
         intent.putExtra("badge_count_package_name", packageName);
         // 메인메뉴에 나타나는 어플의 클래스 명
