@@ -196,8 +196,8 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
     private void showNotificationIfPossible (Context context, Bundle extras) {
 
         // Send a notification if there is a message or title, otherwise just send data
-        String message = java.net.URLEncoder.decode(extras.getString(MESSAGE),"UTF-8");
-        String title = java.net.URLEncoder.decode(extras.getString(TITLE),"UTF-8");
+        String message = java.net.URLDecoder.decode(extras.getString(MESSAGE),"UTF-8");
+        String title = java.net.URLDecoder.decode(extras.getString(TITLE),"UTF-8");
         String contentAvailable = extras.getString(CONTENT_AVAILABLE);
 
         Log.d(LOG_TAG, "message =[" + message + "]");
